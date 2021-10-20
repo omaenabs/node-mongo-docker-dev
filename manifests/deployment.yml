@@ -1,0 +1,19 @@
+apiVersion : apps/v1
+kind: Deployment
+metadata:
+  name: imafidonnodemongodockerdev 
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: imafidonnodemongodockerdev
+  template:
+    metadata:
+      labels:
+        app: imafidonnodemongodockerdev 
+    spec:
+      containers:
+        - name: imafidonnodemongodockerdev 
+          image: sylvester1.azurecr.io/imafidonnodemongodockerdev
+          ports:
+          - containerPort: 8080
