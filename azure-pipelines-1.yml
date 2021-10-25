@@ -1,0 +1,59 @@
+
+trigger:
+- master
+
+resources:
+- repo: self
+
+variables:
+sly:simpleapp
+  tag: '$(Build.BuildId)'
+
+stages:
+- stage: Build
+  displayName: Build image
+  jobs:
+  - job: Build
+    displayName: Build
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - task: Docker@2
+      displayName: Build an image
+      inputs:
+        command: build
+        dockerfile: '- task: Docker@2
+  inputs:
+    containerRegistry: 'connection2'
+    repository: '$(sly)'
+    command: 'buildAndPush'
+    Dockerfile: '$(Build.SourcesDirectory)/Dockerfile'
+    tags: |
+      $(tag)
+      latest'
+        tags: |
+          $(tag)
+          - task: KubernetesManifest@0
+            inputs:
+              action: 'deploy'
+              kubernetesServiceConnection: 'connection1'
+              namespace: 'default'
+              manifests: 'sly2'
+ stage:Deploy
+ displayName: Deploy to Dev
+ dependson:Build
+ variables:
+ acrsecret:cluster
+- task: KubernetesManifest@0
+  inputs:
+    action: 'createSecret'
+    kubernetesServiceConnection: 'connection1'
+    namespace: 'default'
+    secretType: 'dockerRegistry'
+    secretName: '$(acrsecret)'
+    dockerRegistryEndpoint: 'connection2'
+ jobs:
+      job deploy
+      displayname: Deploy to AKS
+      pool:
+      vmimage:ubuntu-latest
